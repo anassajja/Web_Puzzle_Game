@@ -1,0 +1,110 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+/* Body styles */
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f4f4f9; /* Light background color */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  flex-direction: column;
+  color: #333;
+}
+
+/* Title (h1) styles */
+h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Grid styles */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  grid-gap: 5px;
+  width: 320px; /* Adjusted to fit grid with gaps */
+  margin: 20px auto;
+  background-color: #ececec; /* Soft background for the grid */
+  padding: 10px;
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Tile styles */
+.tile {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px; /* Rounded corners for tiles */
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform 0.3s ease; /* Smooth transform effect on hover */
+}
+
+/* Hover effect on tiles */
+.tile:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Shadow on hover */
+}
+
+/* Empty tile styles */
+.empty {
+  background-color: #fff;
+  border: none;
+}
+
+/* Tile image styles */
+.tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 5px; /* Rounded corners for images */
+}
+
+/* Button styles */
+button {
+  background-color: #4CAF50; /* Green background for buttons */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 10px 0;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #45a049; /* Darker green on hover */
+  transform: scale(1.05); /* Slight scale effect on hover */
+}
+
+/* Button focus styles */
+button:focus {
+  outline: none; /* Remove default focus outline */
+}
+
+/* Responsive grid styling */
+@media (max-width: 400px) { /* Adjust grid for small screens */
+  .grid {
+    grid-template-columns: repeat(3, 80px); /* Smaller grid on small screens */
+    width: 260px;
+  }
+
+  .tile {
+    width: 80px;
+    height: 80px;
+    font-size: 18px; /* Adjust font size for small tiles */
+  }
+}
