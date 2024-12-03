@@ -1,7 +1,5 @@
-const grid = document.getElementById('grid'); // Get the grid element
-
-// Array of tile images, with one slot being null for the empty space
-let tiles = [
+const puzzleGrid = document.getElementById("grid");
+let puzzleTiles = [
   'puzzle_image/img1.jpg',
   'puzzle_image/img2.jpg',
   'puzzle_image/img3.jpg',
@@ -13,82 +11,110 @@ let tiles = [
   null // Empty space
 ];
 
-// Function to render the grid
-function renderGrid() {
-  grid.innerHTML = ''; // Clear existing grid
-  tiles.forEach((tile, index) => { // Loop through each tile
-    const tileDiv = document.createElement('div'); // Create a div element for each tile
-    tileDiv.className = tile === null ? 'tile empty' : 'tile'; // Set the class for empty space
+function moveTileToEmpty(tileIndex) {
+  const emptyIndex = puzzleTiles.indexOf(null);
+  const possibleMoves = getAvailableMoves(emptyIndex);
+  const adjacentMoves = getExtendedMoves(possibleMoves);
 
-    if (tile) { // If the tile is not empty, create an image element
-      const img = document.createElement('img'); // If the tile is not empty, create an image element
-      img.src = tile; // Set the image source
-      tileDiv.appendChild(img); // Append the image to the tile div
-    }
-
-    tileDiv.addEventListener('click', () => moveTile(index)); // Add click event to move the tile
-    grid.appendChild(tileDiv); // Append the tile div to the grid
-  }); 
-}
-
-// Initial render
-renderGrid();
-
-// Function to move the tile into the empty space
-function moveTile(index) { // Function to move the tile into the empty space
-  const emptyIndex = tiles.indexOf(null); // Get the index of the empty space
-  const validMoves = [index - 1, index + 1, index - 3, index + 3]; // Adjacent indices: left, right, up, down
-
-  // Check if the move is valid and the empty space is adjacent
-  if (validMoves.includes(emptyIndex) && isValidPosition(index, emptyIndex)) { // Check if the move is valid and the empty space is adjacent
-    [tiles[index], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[index]]; // Swap the tiles
-    renderGrid(); // Re-render the grid with the updated positions
+  if (possibleMoves.includes(tileIndex) || adjacentMoves.includes(tileIndex)) {
+    [puzzleTiles[tileIndex], puzzleTiles[emptyIndex]] = [puzzleTiles[emptyIndex], puzzleTiles[tileIndex]];
+    updateGrid();
   }
 }
 
-// Check if the move is within bounds (no wrapping around rows)
-function isValidPosition(index, emptyIndex) { // Check if the move is within bounds (no wrapping around rows)
-  if (index % 3 === 0 && emptyIndex === index - 1) return false; // Left edge
-  if (index % 3 === 2 && emptyIndex === index + 1) return false; // Right edge
-  return true; // Valid move
+function getAvailableMoves(emptyIndex) {
+  const moves = [];
+  const row = Math.floor(emptyIndex / 3);
+  const col = emptyIndex % 3;
+
+  if (row > 0) moves.push(emptyIndex - 3); // Up
+  if (row < 2) moves.push(emptyIndex + 3); // Down
+  if (col > 0) moves.push(emptyIndex - 1); // Left
+  if (col < 2) moves.push(emptyIndex + 1); // Right
+
+  return moves;
 }
 
-// Shuffle the tiles
-document.getElementById('random').addEventListener('click', () => { // Add click event to shuffle the tiles
-  // Shuffle tiles randomly while keeping the empty space intact
-  do { // Keep shuffling until the puzzle is solvable
-    tiles = tiles // Shuffle tiles randomly while keeping the empty space intact
-      .map(value => ({ value, sort: Math.random() })) // Randomize tiles
-      .sort((a, b) => a.sort - b.sort) // Sort the tiles
-      .map(({ value }) => value); // Get the sorted tiles
-  } while (isPuzzleSolvable() === false); // Ensure the puzzle is solvable
-  renderGrid(); // Re-render the grid with shuffled tiles
-});
+function getExtendedMoves(validMoves) {
+  const extendedMoves = new Set();
 
-// Check if the puzzle is solvable (optional)
-function isPuzzleSolvable() { // Count the number of inversions
-  let inversions = 0;   // Count the number of inversions
-  const flatTiles = tiles.filter(t => t !== null); // Flatten the tiles and remove the empty space
-  for (let i = 0; i < flatTiles.length; i++) { // Count inversions
-    for (let j = i + 1; j < flatTiles.length; j++) { // Count inversions
-      if (flatTiles[i] > flatTiles[j]) inversions++; // Count inversions
+  puzzleTiles.forEach((tile, i) => {
+    // Skip if the current tile is null (i.e., empty or invalid)
+    if (tile !== null) {
+      // Find all valid moves that can reach the current tile index
+      const adjacentValidMoves = validMoves.filter(validMove =>
+        getAvailableMoves(validMove).includes(i)
+      );
+
+      // If the current tile is adjacent to at least two valid moves, add it
+      if (adjacentValidMoves.length >= 2) {
+        extendedMoves.add(i); // Add the tile index to the set
+      }
+    }
+  });
+
+  // Convert the set to an array and return it
+  return [...extendedMoves];
+}
+
+
+function checkSolvability(arr) {
+  let inversionCount = 0;
+  const tileNumbers = arr
+    .filter(tile => tile !== null)
+    .map(tile => parseInt(tile.match(/\d+/)[0]));
+
+  for (let i = 0; i < tileNumbers.length - 1; i++) {
+    for (let j = i + 1; j < tileNumbers.length; j++) {
+      if (tileNumbers[i] > tileNumbers[j]) inversionCount++;
     }
   }
-  return inversions % 2 === 0; // Puzzle is solvable if inversions are even
+
+  return inversionCount % 2 === 0;
 }
 
-// Resolve the puzzle (reset to the solved state)
-document.getElementById('resolve').addEventListener('click', () => { // Add click event to resolve the puzzle
-  tiles = [
-    null, // Empty space
-    'puzzle_image/img8.jpg',
-    'puzzle_image/img7.jpg',
-    'puzzle_image/img6.jpg',
-    'puzzle_image/img5.jpg',
-    'puzzle_image/img4.jpg',
-    'puzzle_image/img3.jpg',
-    'puzzle_image/img2.jpg',
-    'puzzle_image/img1.jpg'
+function shufflePuzzle() {
+  let shuffledTiles;
+  do {
+    shuffledTiles = [...puzzleTiles];
+    for (let i = shuffledTiles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledTiles[i], shuffledTiles[j]] = [shuffledTiles[j], shuffledTiles[i]];
+    }
+  } while (!checkSolvability(shuffledTiles));
+
+  puzzleTiles = shuffledTiles;
+  updateGrid();
+}
+
+// Solve the puzzle and arrange tiles in the correct order
+function solvePuzzle() {
+  puzzleTiles = [
+    null, 'puzzle_image/img8.jpg', 'puzzle_image/img7.jpg',
+    'puzzle_image/img6.jpg', 'puzzle_image/img5.jpg', 'puzzle_image/img4.jpg',
+    'puzzle_image/img3.jpg', 'puzzle_image/img2.jpg', 'puzzle_image/img1.jpg'
   ];
-  renderGrid(); // Re-render the grid to its solved state
-});
+  updateGrid();
+}
+
+function updateGrid() {
+  puzzleGrid.innerHTML = "";
+  puzzleTiles.forEach((tile, index) => {
+    const tileDiv = document.createElement("div");
+    tileDiv.className = tile === null ? "tile empty" : "tile";
+
+    if (tile) {
+      const image = document.createElement("img");
+      image.src = tile;
+      tileDiv.appendChild(image);
+    }
+
+    tileDiv.addEventListener("click", () => moveTileToEmpty(index));
+    puzzleGrid.appendChild(tileDiv);
+  });
+}
+
+document.getElementById("shuffle").addEventListener("click", shufflePuzzle);
+document.getElementById("solve").addEventListener("click", solvePuzzle);
+
+updateGrid();
